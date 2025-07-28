@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Cleaner - Clean Your Messy Data</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;600&family=Arial:wght@400;600&display=swap');
+        
+        body {
+            font-family: 'Noto Sans Tamil', 'Arial', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .upload-area {
+            border: 2px dashed #007bff;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            background-color: #f8f9fa;
+        }
+        .upload-area:hover {
+            background-color: #e9ecef;
+        }
+        input[type="file"] {
+            margin: 20px 0;
+            padding: 10px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .results {
+            margin-top: 30px;
+        }
+        .stats {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+            font-family: 'Noto Sans Tamil', 'Arial', sans-serif;
+            word-wrap: break-word;
+            max-width: 200px;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+            margin: 20px 0;
+        }
+        .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #155724;
+            background-color: #d4edda;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .issues {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .issue-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 3px;
+            border-left: 4px solid #007bff;
+        }
+        .issue-dummy { border-left-color: #dc3545; background-color: #f8d7da; }
+        .issue-language { border-left-color: #fd7e14; background-color: #ffeaa7; }
+        .issue-column { border-left-color: #6f42c1; background-color: #e2d9f3; }
+        .issue-format { border-left-color: #e83e8c; background-color: #f8d7da; }
+        .issue-header {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .issue-summary {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .issue-count {
+            background-color: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Data Cleaner</h1>
+        <p style="text-align: center; color: #666; font-size: 18px;">
+            Upload your messy CSV files and see your data organized instantly
+        </p>
+
+        <div class="upload-area">
+            <h3>📂 Upload Your CSV File</h3>
+            <p>Choose a CSV or Excel file with mixed languages, wrong columns, or messy data</p>
+            <input type="file" id="csvFile" accept=".csv,.xlsx,.xls" />
+            <br>
+            <button onclick="uploadFile()" id="uploadBtn">
+                🚀 Clean My Data
+            </button>
+        </div>
+
+        <div id="results" class="results" style="display: none;">
+            <div id="stats" class="stats"></div>
+            <div id="issues" class="issues" style="display: none;"></div>
+            <div id="dataTable"></div>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <p>🔄 Processing your data...</p>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+    </div>
+
+    <script>
+        async function uploadFile() {
+            const fileInput = document.getElementById('csvFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showError('Please select a CSV file first!');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('uploadBtn').disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('csvFile', file);
+
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayResults(result);
+                } else {
+                    showError(result.error || 'Error processing file');
+                }
+            } catch (error) {
+                showError('Error uploading file: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('uploadBtn').disabled = false;
+            }
+        }
+
+        function displayResults(result) {
+            const { data, rowCount, columns, analysis } = result;
+
+            // Show stats
+            const statsDiv = document.getElementById('stats');
+            statsDiv.innerHTML = '<h3>📊 Data Summary</h3>' +
+                '<p><strong>Rows:</strong> ' + rowCount + '</p>' +
+                '<p><strong>Columns:</strong> ' + columns.length + ' (' + columns.join(', ') + ')</p>' +
+                '<p><strong>File processed successfully!</strong> 🎉</p>';
+
+            // Show issues if any found
+            if (analysis && analysis.totalIssues > 0) {
+                displayIssues(analysis);
+            }
+
+            // Create table with issue highlighting
+            const tableDiv = document.getElementById('dataTable');
+            if (data.length > 0) {
+                let tableHTML = '<table><thead><tr>';
+                
+                // Table headers
+                columns.forEach(column => {
+                    tableHTML += `<th>${column}</th>`;
+                });
+                tableHTML += '</tr></thead><tbody>';
+
+                // Table rows (show first 20 rows)
+                const rowsToShow = Math.min(data.length, 20);
+                for (let i = 0; i < rowsToShow; i++) {
+                    tableHTML += '<tr>';
+                    columns.forEach(column => {
+                        const cellValue = data[i][column] || '';
+                        const cellClass = getCellIssueClass(analysis, i + 1, column, cellValue);
+                        tableHTML += `<td class="${cellClass}">${cellValue}</td>`;
+                    });
+                    tableHTML += '</tr>';
+                }
+                
+                if (data.length > 20) {
+                    tableHTML += `<tr><td colspan="${columns.length}" style="text-align: center; font-style: italic; color: #666;">... and ${data.length - 20} more rows</td></tr>`;
+                }
+                
+                tableHTML += '</tbody></table>';
+                tableDiv.innerHTML = tableHTML;
+            }
+
+            // Show results
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function displayIssues(analysis) {
+            const issuesDiv = document.getElementById('issues');
+            const { issues, languageStats, totalIssues } = analysis;
+
+            let issuesHTML = '<div class="issue-header">🔍 Data Quality Issues Found</div>' +
+                '<div class="issue-summary">' +
+                '<span>Total Issues: <span class="issue-count">' + totalIssues + '</span></span>' +
+                '<span>Language Distribution: Tamil(' + languageStats.tamil + ') English(' + languageStats.english + ') Mixed(' + languageStats.mixed + ')</span>' +
+                '</div>';
+
+            // Group issues by type
+            const groupedIssues = {};
+            issues.forEach(issue => {
+                if (!groupedIssues[issue.type]) {
+                    groupedIssues[issue.type] = [];
+                }
+                groupedIssues[issue.type].push(issue);
+            });
+
+            // Display each issue type
+            Object.keys(groupedIssues).forEach(function(type) {
+                const typeIssues = groupedIssues[type];
+                const typeClass = 'issue-' + type.replace('_', '');
+                
+                issuesHTML += '<h4>📋 ' + getIssueTypeTitle(type) + ' (' + typeIssues.length + ')</h4>';
+                
+                typeIssues.slice(0, 10).forEach(function(issue) { // Show first 10 of each type
+                    issuesHTML += '<div class="issue-item ' + typeClass + '">' +
+                        '<strong>Row ' + issue.row + ', Column "' + issue.column + '":</strong><br>' +
+                        'Value: "' + issue.value + '"<br>' +
+                        '<em>' + issue.message + '</em>' +
+                        (issue.suggestion ? '<br><strong>Suggestion:</strong> ' + issue.suggestion : '') +
+                        '</div>';
+                });
+                
+                if (typeIssues.length > 10) {
+                    issuesHTML += '<p><em>... and ' + (typeIssues.length - 10) + ' more ' + type + ' issues</em></p>';
+                }
+            });
+
+            issuesDiv.innerHTML = issuesHTML;
+            issuesDiv.style.display = 'block';
+        }
+
+        function getIssueTypeTitle(type) {
+            const titles = {
+                'dummy_data': 'Dummy/Fake Data',
+                'mixed_language': 'Mixed Language Text',
+                'column_mismatch': 'Column Misalignment',
+                'format_issue': 'Format Problems'
+            };
+            return titles[type] || type;
+        }
+
+        function getCellIssueClass(analysis, row, column, value) {
+            if (!analysis || !analysis.issues) return '';
+            
+            const cellIssues = analysis.issues.filter(function(issue) {
+                return issue.row === row && issue.column === column && issue.value === value;
+            });
+            
+            if (cellIssues.length === 0) return '';
+            
+            // Return class based on most severe issue type
+            const severityOrder = ['dummy_data', 'column_mismatch', 'mixed_language'];
+            for (let i = 0; i < severityOrder.length; i++) {
+                const type = severityOrder[i];
+                const foundIssue = cellIssues.find(function(issue) {
+                    return issue.type === type;
+                });
+                if (foundIssue) {
+                    return 'issue-' + type.replace('_', '');
+                }
+            }
+            
+            return '';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Allow drag and drop
+        const uploadArea = document.querySelector('.upload-area');
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.backgroundColor = '#e9ecef';
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.backgroundColor = '#f8f9fa';
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.backgroundColor = '#f8f9fa';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('csvFile').files = files;
+            }
+        });
+    </script>
+</body>
+</html>
