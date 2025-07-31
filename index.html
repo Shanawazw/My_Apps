@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Cleaner - Clean Your Messy Data</title>
+    <title>DataCleaner Pro - Smart Data Quality Tool</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;600&family=Arial:wght@400;600&display=swap');
         
@@ -20,10 +21,47 @@
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        h1 {
-            color: #333;
+        .header {
             text-align: center;
             margin-bottom: 30px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .pricing-banner {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .upgrade-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px;
+        }
+        .upgrade-btn:hover {
+            background-color: #218838;
+        }
+        .user-info {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
         }
         .upload-area {
             border: 2px dashed #007bff;
@@ -148,18 +186,35 @@
 </head>
 <body>
     <div class="container">
-        <h1>🧹 Data Cleaner</h1>
-        <p style="text-align: center; color: #666; font-size: 18px;">
-            Upload your messy CSV files and see your data organized instantly
-        </p>
+        <div class="header">
+            <h1>🧹 DataCleaner Pro</h1>
+            <p class="subtitle">The Smart Data Quality Tool Built for Indian Businesses</p>
+            
+            <div class="pricing-banner">
+                <h3>🚀 Launch Special: Start Free, Upgrade for ₹999/month</h3>
+                <p>✅ 5 Free Files | ✅ Tamil-English Detection | ✅ Comprehensive Analysis</p>
+            </div>
+        </div>
+
+        <div id="user-info" class="user-info" style="display: none;">
+            <p id="user-status"></p>
+        </div>
 
         <div class="upload-area">
-            <h3>📂 Upload Your CSV File</h3>
-            <p>Choose a CSV or Excel file with mixed languages, wrong columns, or messy data</p>
+            <h3>📂 Upload Your Data File</h3>
+            <p>Choose a CSV or Excel file with messy data - we'll analyze it instantly!</p>
             <input type="file" id="csvFile" accept=".csv,.xlsx,.xls" />
             <br>
             <button onclick="uploadFile()" id="uploadBtn">
-                🚀 Clean My Data
+                🔍 Analyze My Data
+            </button>
+        </div>
+
+        <div id="upgrade-prompt" style="display: none;" class="pricing-banner">
+            <h3>🚫 Free Plan Limit Reached!</h3>
+            <p>Upgrade to DataCleaner Pro for unlimited file analysis</p>
+            <button onclick="initiatePayment()" class="upgrade-btn">
+                💳 Upgrade to Pro - ₹999/month
             </button>
         </div>
 
@@ -170,19 +225,27 @@
         </div>
 
         <div id="loading" class="loading" style="display: none;">
-            <p>🔄 Processing your data...</p>
+            <p>🔄 Analyzing your data...</p>
         </div>
 
         <div id="error" class="error" style="display: none;"></div>
     </div>
 
     <script>
+        let currentUserId = localStorage.getItem('datacleanerUserId');
+        
+        // Display user info on page load
+        if (currentUserId) {
+            document.getElementById('user-info').style.display = 'block';
+            document.getElementById('user-status').textContent = '✅ DataCleaner Pro User - Unlimited Files';
+        }
+
         async function uploadFile() {
             const fileInput = document.getElementById('csvFile');
             const file = fileInput.files[0];
             
             if (!file) {
-                showError('Please select a CSV file first!');
+                showError('Please select a file first!');
                 return;
             }
 
@@ -190,6 +253,7 @@
             document.getElementById('loading').style.display = 'block';
             document.getElementById('results').style.display = 'none';
             document.getElementById('error').style.display = 'none';
+            document.getElementById('upgrade-prompt').style.display = 'none';
             document.getElementById('uploadBtn').disabled = true;
 
             try {
@@ -198,13 +262,19 @@
 
                 const response = await fetch('/upload', {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    headers: {
+                        'user-id': currentUserId || ''
+                    }
                 });
 
                 const result = await response.json();
 
                 if (result.success) {
                     displayResults(result);
+                } else if (result.needsUpgrade) {
+                    document.getElementById('upgrade-prompt').style.display = 'block';
+                    showError(result.error);
                 } else {
                     showError(result.error || 'Error processing file');
                 }
@@ -216,53 +286,142 @@
             }
         }
 
+        async function initiatePayment() {
+            try {
+                const response = await fetch('/create-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const orderData = await response.json();
+
+                if (orderData.success) {
+                    const options = {
+                        "key": "your_razorpay_key_id", // Replace with your key
+                        "amount": orderData.amount,
+                        "currency": orderData.currency,
+                        "name": "DataCleaner Pro",
+                        "description": "Monthly Subscription",
+                        "order_id": orderData.order_id,
+                        "handler": function (response) {
+                            verifyPayment(response);
+                        },
+                        "prefill": {
+                            "name": "",
+                            "email": "",
+                            "contact": ""
+                        },
+                        "theme": {
+                            "color": "#007bff"
+                        }
+                    };
+
+                    const rzp = new Razorpay(options);
+                    rzp.open();
+                } else {
+                    showError('Failed to initiate payment');
+                }
+            } catch (error) {
+                showError('Payment error: ' + error.message);
+            }
+        }
+
+        async function verifyPayment(paymentResponse) {
+            try {
+                const response = await fetch('/verify-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                        razorpay_order_id: paymentResponse.razorpay_order_id,
+                        razorpay_signature: paymentResponse.razorpay_signature,
+                        user_email: prompt('Enter your email for receipt:') || 'user@example.com'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    currentUserId = result.userId;
+                    localStorage.setItem('datacleanerUserId', currentUserId);
+                    
+                    document.getElementById('user-info').style.display = 'block';
+                    document.getElementById('user-status').textContent = '✅ Welcome to DataCleaner Pro! Unlimited files unlocked.';
+                    document.getElementById('upgrade-prompt').style.display = 'none';
+                    
+                    showSuccess('Payment successful! You now have unlimited access.');
+                } else {
+                    showError('Payment verification failed');
+                }
+            } catch (error) {
+                showError('Payment verification error: ' + error.message);
+            }
+        }
+
         function displayResults(result) {
-            const { data, rowCount, columns, analysis } = result;
+            const { data, rowCount, columns, analysis, userInfo } = result;
+
+            // Show user info
+            if (userInfo) {
+                let statusText = '';
+                if (userInfo.plan === 'free') {
+                    statusText = '🆓 Free Plan: ' + userInfo.filesLeft + ' files remaining this month';
+                } else {
+                    statusText = '🚀 Pro Plan: Unlimited files';
+                }
+                document.getElementById('user-info').style.display = 'block';
+                document.getElementById('user-status').textContent = statusText;
+            }
 
             // Show stats
             const statsDiv = document.getElementById('stats');
-            statsDiv.innerHTML = '<h3>📊 Data Summary</h3>' +
+            statsDiv.innerHTML = '<h3>📊 Data Analysis Results</h3>' +
                 '<p><strong>Rows:</strong> ' + rowCount + '</p>' +
                 '<p><strong>Columns:</strong> ' + columns.length + ' (' + columns.join(', ') + ')</p>' +
-                '<p><strong>File processed successfully!</strong> 🎉</p>';
+                '<p><strong>Analysis Complete!</strong> 🎉</p>';
 
             // Show issues if any found
             if (analysis && analysis.totalIssues > 0) {
                 displayIssues(analysis);
+            } else {
+                const issuesDiv = document.getElementById('issues');
+                issuesDiv.innerHTML = '<div class="success"><h3>✅ Great News!</h3><p>No data quality issues detected. Your data looks clean!</p></div>';
+                issuesDiv.style.display = 'block';
             }
 
-            // Create table with issue highlighting
+            // Create table
             const tableDiv = document.getElementById('dataTable');
             if (data.length > 0) {
                 let tableHTML = '<table><thead><tr>';
                 
-                // Table headers
-                columns.forEach(column => {
-                    tableHTML += `<th>${column}</th>`;
+                columns.forEach(function(column) {
+                    tableHTML += '<th>' + column + '</th>';
                 });
                 tableHTML += '</tr></thead><tbody>';
 
-                // Table rows (show first 20 rows)
                 const rowsToShow = Math.min(data.length, 20);
                 for (let i = 0; i < rowsToShow; i++) {
                     tableHTML += '<tr>';
-                    columns.forEach(column => {
+                    columns.forEach(function(column) {
                         const cellValue = data[i][column] || '';
                         const cellClass = getCellIssueClass(analysis, i + 1, column, cellValue);
-                        tableHTML += `<td class="${cellClass}">${cellValue}</td>`;
+                        tableHTML += '<td class="' + cellClass + '">' + cellValue + '</td>';
                     });
                     tableHTML += '</tr>';
                 }
                 
                 if (data.length > 20) {
-                    tableHTML += `<tr><td colspan="${columns.length}" style="text-align: center; font-style: italic; color: #666;">... and ${data.length - 20} more rows</td></tr>`;
+                    tableHTML += '<tr><td colspan="' + columns.length + '" style="text-align: center; font-style: italic; color: #666;">... and ' + (data.length - 20) + ' more rows</td></tr>';
                 }
                 
                 tableHTML += '</tbody></table>';
                 tableDiv.innerHTML = tableHTML;
             }
 
-            // Show results
             document.getElementById('results').style.display = 'block';
         }
 
@@ -273,26 +432,24 @@
             let issuesHTML = '<div class="issue-header">🔍 Data Quality Issues Found</div>' +
                 '<div class="issue-summary">' +
                 '<span>Total Issues: <span class="issue-count">' + totalIssues + '</span></span>' +
-                '<span>Language Distribution: Tamil(' + languageStats.tamil + ') English(' + languageStats.english + ') Mixed(' + languageStats.mixed + ')</span>' +
+                '<span>Language Mix: Tamil(' + languageStats.tamil + ') English(' + languageStats.english + ') Mixed(' + languageStats.mixed + ')</span>' +
                 '</div>';
 
-            // Group issues by type
             const groupedIssues = {};
-            issues.forEach(issue => {
+            issues.forEach(function(issue) {
                 if (!groupedIssues[issue.type]) {
                     groupedIssues[issue.type] = [];
                 }
                 groupedIssues[issue.type].push(issue);
             });
 
-            // Display each issue type
             Object.keys(groupedIssues).forEach(function(type) {
                 const typeIssues = groupedIssues[type];
                 const typeClass = 'issue-' + type.replace('_', '');
                 
                 issuesHTML += '<h4>📋 ' + getIssueTypeTitle(type) + ' (' + typeIssues.length + ')</h4>';
                 
-                typeIssues.slice(0, 10).forEach(function(issue) { // Show first 10 of each type
+                typeIssues.slice(0, 10).forEach(function(issue) {
                     issuesHTML += '<div class="issue-item ' + typeClass + '">' +
                         '<strong>Row ' + issue.row + ', Column "' + issue.column + '":</strong><br>' +
                         'Value: "' + issue.value + '"<br>' +
@@ -329,7 +486,6 @@
             
             if (cellIssues.length === 0) return '';
             
-            // Return class based on most severe issue type
             const severityOrder = ['dummy_data', 'column_mismatch', 'mixed_language'];
             for (let i = 0; i < severityOrder.length; i++) {
                 const type = severityOrder[i];
@@ -350,18 +506,28 @@
             errorDiv.style.display = 'block';
         }
 
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.textContent = message;
+            document.querySelector('.container').insertBefore(successDiv, document.querySelector('.upload-area'));
+            setTimeout(function() {
+                successDiv.remove();
+            }, 5000);
+        }
+
         // Allow drag and drop
         const uploadArea = document.querySelector('.upload-area');
-        uploadArea.addEventListener('dragover', (e) => {
+        uploadArea.addEventListener('dragover', function(e) {
             e.preventDefault();
             uploadArea.style.backgroundColor = '#e9ecef';
         });
 
-        uploadArea.addEventListener('dragleave', () => {
+        uploadArea.addEventListener('dragleave', function() {
             uploadArea.style.backgroundColor = '#f8f9fa';
         });
 
-        uploadArea.addEventListener('drop', (e) => {
+        uploadArea.addEventListener('drop', function(e) {
             e.preventDefault();
             uploadArea.style.backgroundColor = '#f8f9fa';
             
