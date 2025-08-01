@@ -9,10 +9,10 @@ const Razorpay = require('razorpay');
 const app = express();
 const upload = multer({ dest: 'uploads/' });
 
-// Initialize Razorpay (replace with your actual keys)
+// Initialize Razorpay with your actual keys
 const razorpay = new Razorpay({
-    key_id: 'rzp_test_tyHySwr8kW0u99', // Replace with your Razorpay key
-    key_secret: 'cCyPBCY52C3uLcDTtyBmOV25' // Replace with your Razorpay secret
+    key_id: 'rzp_test_tyHySwr8kW0u99',
+    key_secret: 'cCyPBCY52C3uLcDTtyBmOV25'
 });
 
 // Serve static files and parse JSON
