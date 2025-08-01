@@ -232,10 +232,15 @@
     </div>
 
     <script>
-        let currentUserId = localStorage.getItem('datacleanerUserId');
+        let currentUserId = localStorage.getItem('datacleanerUserId') || 'free_user_' + Date.now();
+        
+        // Save free user ID if it's new
+        if (!localStorage.getItem('datacleanerUserId') && !currentUserId.startsWith('user_')) {
+            localStorage.setItem('datacleanerUserId', currentUserId);
+        }
         
         // Display user info on page load
-        if (currentUserId) {
+        if (currentUserId && currentUserId.startsWith('user_')) {
             document.getElementById('user-info').style.display = 'block';
             document.getElementById('user-status').textContent = '✅ DataCleaner Pro User - Unlimited Files';
         }
@@ -271,6 +276,12 @@
                 const result = await response.json();
 
                 if (result.success) {
+                    // Update user ID if provided
+                    if (result.userId && !currentUserId.startsWith('user_')) {
+                        currentUserId = result.userId;
+                        localStorage.setItem('datacleanerUserId', currentUserId);
+                    }
+                    
                     displayResults(result);
                 } else if (result.needsUpgrade) {
                     document.getElementById('upgrade-prompt').style.display = 'block';
