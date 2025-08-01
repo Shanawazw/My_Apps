@@ -11,8 +11,8 @@ const upload = multer({ dest: 'uploads/' });
 
 // Initialize Razorpay (replace with your actual keys)
 const razorpay = new Razorpay({
-    key_id: 'your_key_id', // Replace with your Razorpay key
-    key_secret: 'your_key_secret' // Replace with your Razorpay secret
+    key_id: 'rzp_test_tyHySwr8kW0u99', // Replace with your Razorpay key
+    key_secret: 'cCyPBCY52C3uLcDTtyBmOV25' // Replace with your Razorpay secret
 });
 
 // Serve static files and parse JSON
