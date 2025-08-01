@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataCleaner Pro - Smart Data Quality Tool for Indian Businesses</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;600;700&family=Inter:wght@400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', 'Noto Sans Tamil', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #007bff;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #007bff;
+        }
+        
+        .cta-button {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,123,255,0.3);
+        }
+        
+        /* Hero Section */
+        .hero {
+            padding: 120px 0 80px;
+            text-align: center;
+            color: white;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .hero .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+        
+        .hero .description {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.8;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 60px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 18px 36px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(40,167,69,0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 18px 36px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-3px);
+        }
+        
+        /* Features Section */
+        .features {
+            background: white;
+            padding: 80px 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 60px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #f0f0f0;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        /* Problem-Solution Section */
+        .problem-solution {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 80px 0;
+        }
+        
+        .problem-solution .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+        
+        .problem-box, .solution-box {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .problem-box {
+            border-left: 5px solid #dc3545;
+        }
+        
+        .solution-box {
+            border-left: 5px solid #28a745;
+        }
+        
+        .problem-box h3, .solution-box h3 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+        
+        .problem-box h3 {
+            color: #dc3545;
+        }
+        
+        .solution-box h3 {
+            color: #28a745;
+        }
+        
+        .problem-list, .solution-list {
+            list-style: none;
+        }
+        
+        .problem-list li {
+            margin-bottom: 15px;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .problem-list li:before {
+            content: "❌";
+            position: absolute;
+            left: 0;
+        }
+        
+        .solution-list li {
+            margin-bottom: 15px;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .solution-list li:before {
+            content: "✅";
+            position: absolute;
+            left: 0;
+        }
+        
+        /* Pricing Section */
+        .pricing {
+            background: white;
+            padding: 80px 0;
+        }
+        
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+        
+        .pricing-card {
+            background: white;
+            border: 2px solid #f0f0f0;
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s;
+        }
+        
+        .pricing-card:hover {
+            border-color: #007bff;
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0,123,255,0.1);
+        }
+        
+        .pricing-card.featured {
+            border-color: #007bff;
+            transform: scale(1.05);
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+        
+        .pricing-card.featured:hover {
+            transform: scale(1.08);
+        }
+        
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .plan-price {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .plan-features {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+        
+        .plan-features li {
+            margin-bottom: 10px;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .plan-features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .pricing-card.featured .plan-features li:before {
+            color: #fff;
+        }
+        
+        .plan-button {
+            background: #007bff;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+        
+        .pricing-card.featured .plan-button {
+            background: white;
+            color: #007bff;
+        }
+        
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, #333, #555);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+        }
+        
+        .cta-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .cta-section p {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #333;
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-links a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .hero .subtitle { font-size: 1.2rem; }
+            .problem-solution .container { grid-template-columns: 1fr; gap: 40px; }
+            .hero-buttons { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo">🧹 DataCleaner Pro</div>
+                <div class="nav-links">
+                    <a href="#features">Features</a>
+                    <a href="#pricing">Pricing</a>
+                    <a href="#contact">Contact</a>
+                    <a href="app.html" class="cta-button">Try Free</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Turn Messy Data Into Clean Gold</h1>
+            <p class="subtitle">The Only Data Cleaning Tool Built for Tamil-English Mixed Data</p>
+            <p class="description">Stop wasting 3+ hours manually checking spreadsheets. Upload your messy CSV/Excel files and get instant, intelligent quality reports. Perfect for Indian businesses, government offices, and data teams.</p>
+            
+            <div class="hero-buttons">
+                <a href="app.html" class="btn-primary">🚀 Start Free Analysis</a>
+                <a href="#features" class="btn-secondary">See How It Works</a>
+            </div>
+            
+            <div style="margin-top: 40px; font-size: 1.1rem; opacity: 0.9;">
+                ✅ 5 Free Files • ✅ No Credit Card Required • ✅ Instant Results
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem-Solution Section -->
+    <section class="problem-solution">
+        <div class="container">
+            <div class="problem-box">
+                <h3>😩 Your Current Data Nightmare</h3>
+                <ul class="problem-list">
+                    <li>Spending hours manually checking each row for errors</li>
+                    <li>Tamil and English text mixed in same fields</li>
+                    <li>Phone numbers ending up in name columns</li>
+                    <li>Fake data like 1111111111 and 0000000000</li>
+                    <li>Inconsistent date formats across spreadsheets</li>
+                    <li>VAO data with codes, names, and villages jumbled together</li>
+                    <li>Missing critical data you didn't notice</li>
+                </ul>
+            </div>
+            
+            <div class="solution-box">
+                <h3>🎉 Your New Data Reality</h3>
+                <ul class="solution-list">
+                    <li>Upload file → Get instant quality report in 30 seconds</li>
+                    <li>Smart Tamil-English language detection</li>
+                    <li>Automatic column misalignment detection</li>
+                    <li>AI-powered dummy data identification</li>
+                    <li>Color-coded issue highlighting</li>
+                    <li>Government data format expertise (VAO, Panchayat)</li>
+                    <li>Never miss critical data problems again</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Why Indian Businesses Choose DataCleaner Pro</h2>
+            <p class="section-subtitle">The only data quality tool that understands your unique challenges</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3>Tamil-English Detection</h3>
+                    <p>First tool built specifically for mixed Tamil-English data. Spots language inconsistencies that cost you hours to find manually.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🏛️</div>
+                    <h3>Government Data Expert</h3>
+                    <p>Perfect for VAO lists, Panchayat records, and district data. Handles complex government data formats automatically.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🚨</div>
+                    <h3>Smart Issue Detection</h3>
+                    <p>AI-powered algorithms catch dummy data (1111, 0000), format errors, and column mismatches human eyes often miss.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Lightning Fast</h3>
+                    <p>30-second analysis vs 3+ hours manual checking. Get comprehensive quality reports instantly.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Visual Problem Highlighting</h3>
+                    <p>Color-coded issue detection shows exactly what's wrong and where. No more guessing or manual scanning.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Secure & Private</h3>
+                    <p>Your sensitive data is processed securely and automatically deleted. No permanent storage, maximum privacy.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <h2 class="section-title">Simple, Transparent Pricing</h2>
+            <p class="section-subtitle">Start free, upgrade when you need more</p>
+            
+            <div class="pricing-cards">
+                <div class="pricing-card">
+                    <div class="plan-name">Free Starter</div>
+                    <div class="plan-price">₹0<span style="font-size: 1rem;">/month</span></div>
+                    <ul class="plan-features">
+                        <li>5 files per month</li>
+                        <li>Basic issue detection</li>
+                        <li>Tamil-English language detection</li>
+                        <li>Standard quality reports</li>
+                        <li>Email support</li>
+                    </ul>
+                    <a href="app.html" class="plan-button">Start Free</a>
+                </div>
+                
+                <div class="pricing-card featured">
+                    <div class="plan-name">DataCleaner Pro</div>
+                    <div class="plan-price">₹999<span style="font-size: 1rem;">/month</span></div>
+                    <ul class="plan-features">
+                        <li>Unlimited files</li>
+                        <li>Advanced issue detection</li>
+                        <li>All language features</li>
+                        <li>Comprehensive analytics</li>
+                        <li>Priority support</li>
+                        <li>Government data expertise</li>
+                    </ul>
+                    <a href="app.html" class="plan-button">Upgrade to Pro</a>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; color: #666;">
+                🔄 Cancel anytime • 💳 Secure payments • 📞 24/7 support
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof -->
+    <section style="background: #f8f9fa; padding: 60px 0;">
+        <div class="container" style="text-align: center;">
+            <h2 style="margin-bottom: 40px; color: #333;">Trusted by Data Teams Across India</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px;">
+                <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                    <p style="font-style: italic; margin-bottom: 20px; color: #666;">"Finally, a tool that understands our Tamil government data! Saved me 15+ hours per week."</p>
+                    <strong>- Government Data Officer, Chennai</strong>
+                </div>
+                <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                    <p style="font-style: italic; margin-bottom: 20px; color: #666;">"The mixed language detection is exactly what we needed for our regional customer database."</p>
+                    <strong>- Small Business Owner, Coimbatore</strong>
+                </div>
+                <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                    <p style="font-style: italic; margin-bottom: 20px; color: #666;">"Cut our data cleaning time by 80%. ROI paid for itself in the first week."</p>
+                    <strong>- Data Entry Service, Madurai</strong>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Ready to Transform Your Data Quality?</h2>
+            <p>Join hundreds of businesses already saving time with DataCleaner Pro</p>
+            <a href="app.html" class="btn-primary" style="font-size: 1.3rem; padding: 20px 40px;">🧹 Start Cleaning Your Data Now</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="contact">
+        <div class="container">
+            <div class="footer-links">
+                <a href="legal/privacy.html">Privacy Policy</a>
+                <a href="legal/terms.html">Terms of Service</a>
+                <a href="legal/refund.html">Refund Policy</a>
+                <a href="legal/contact.html">Contact Us</a>
+            </div>
+            <p>&copy; 2025 DataCleaner Pro. Built with ❤️ for Indian businesses.</p>
+            <p style="margin-top: 10px; color: #ccc;">Transform your messy data into clean, professional spreadsheets.</p>
+        </div>
+    </footer>
+</body>
+</html>
