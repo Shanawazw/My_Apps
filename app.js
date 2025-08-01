@@ -335,14 +335,31 @@ function analyzeData(data) {
 
 // Check user limits
 function checkUserLimits(userId) {
+    console.log('Checking limits for user:', userId); // Debug
+    
     if (!userId) {
-        return { allowed: true, filesLeft: 5, plan: 'free' }; // Free user
+        // Create new free user session
+        const newUserId = 'free_user_' + Date.now();
+        userSessions[newUserId] = {
+            plan: 'free',
+            filesProcessed: 0,
+            createdAt: new Date()
+        };
+        return { allowed: true, filesLeft: 5, plan: 'free', newUserId: newUserId };
+    }
+    
+    // Check if user exists in sessions
+    if (!userSessions[userId]) {
+        // Create free user session if doesn't exist
+        userSessions[userId] = {
+            plan: 'free',
+            filesProcessed: 0,
+            createdAt: new Date()
+        };
     }
     
     const user = userSessions[userId];
-    if (!user) {
-        return { allowed: true, filesLeft: 5, plan: 'free' }; // Free user
-    }
+    console.log('User session:', user); // Debug
     
     if (user.plan === 'pro') {
         return { allowed: true, filesLeft: 'unlimited', plan: 'pro' };
@@ -350,6 +367,8 @@ function checkUserLimits(userId) {
     
     // Free user limits
     const filesLeft = Math.max(0, 5 - user.filesProcessed);
+    console.log('Files processed:', user.filesProcessed, 'Files left:', filesLeft); // Debug
+    
     return { 
         allowed: filesLeft > 0, 
         filesLeft: filesLeft, 
@@ -416,10 +435,16 @@ app.post('/upload', upload.single('csvFile'), (req, res) => {
     console.log('Upload route hit!'); // Debug log
     console.log('File received:', req.file ? 'YES' : 'NO'); // Debug log
     
-    const userId = req.headers['user-id'];
+    const userId = req.headers['user-id'] || null;
     const userLimits = checkUserLimits(userId);
     
-    console.log('User limits:', userLimits); // Debug log
+    // If new user ID was created, send it back
+    let responseUserId = userId;
+    if (userLimits.newUserId) {
+        responseUserId = userLimits.newUserId;
+    }
+    
+    console.log('User limits result:', userLimits); // Debug log
     
     if (!userLimits.allowed) {
         return res.status(403).json({ 
@@ -454,8 +479,9 @@ app.post('/upload', upload.single('csvFile'), (req, res) => {
             const analysis = analyzeData(jsonData);
             
             // Update user file count
-            if (userId && userSessions[userId]) {
-                userSessions[userId].filesProcessed++;
+            if (responseUserId && userSessions[responseUserId]) {
+                userSessions[responseUserId].filesProcessed++;
+                console.log('Updated file count for user:', responseUserId, 'New count:', userSessions[responseUserId].filesProcessed);
             }
             
             // Clean up uploaded file
@@ -471,7 +497,8 @@ app.post('/upload', upload.single('csvFile'), (req, res) => {
                 columns: jsonData.length > 0 ? Object.keys(jsonData[0]) : [],
                 fileType: 'Excel',
                 analysis: analysis,
-                userInfo: userLimits
+                userInfo: userLimits,
+                userId: responseUserId // Send user ID back to frontend
             });
             
         } else if (fileExtension === '.csv') {
