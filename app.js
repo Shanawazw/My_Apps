@@ -9,141 +9,33 @@ const Razorpay = require('razorpay');
 const app = express();
 const upload = multer({ dest: 'uploads/' });
 
-// Create payment order
-app.post('/create-order', async (req, res) => {
-    try {
-        const options = {
-            amount: 99900, // ₹999 in paise
-            currency: 'INR',
-            receipt: 'receipt_' + Date.now(),
-            notes: {
-                plan: 'DataCleaner Pro Monthly'
-            }
-        };
-
-        const order = await razorpay.orders.create(options);
-        res.json({
-            success: true,
-            order_id: order.id,
-            amount: order.amount,
-            currency: order.currency
-        });
-    } catch (error) {
-        console.error('Error creating order:', error);
-        res.status(500).json({ error: 'Failed to create payment order' });
-    }
-});
-
-// Verify payment
-app.post('/verify-payment', async (req, res) => {
-    try {
-        const { razorpay_payment_id, razorpay_order_id, razorpay_signature, user_email } = req.body;
-        
-        // In production, verify the signature properly
-        // For now, we'll assume payment is successful
-        
-        // Create user session
-        const userId = 'user_' + Date.now();
-        userSessions[userId] = {
-            email: user_email,
-            plan: 'pro',
-            filesProcessed: 0,
-            subscriptionDate: new Date(),
-            paymentId: razorpay_payment_id
-        };
-        
-        res.json({
-            success: true,
-            userId: userId,
-            message: 'Payment successful! Welcome to DataCleaner Pro!'
-        });
-    } catch (error) {
-        console.error('Error verifying payment:', error);
-        res.status(500).json({ error: 'Payment verification failed' });
-    }
-});
-
-// Check user limits
-function checkUserLimits(userId) {
-    if (!userId) {
-        return { allowed: true, filesLeft: 5, plan: 'free' }; // Free user
-    }
-    
-    const user = userSessions[userId];
-    if (!user) {
-        return { allowed: true, filesLeft: 5, plan: 'free' }; // Free user
-    }
-    
-    if (user.plan === 'pro') {
-        return { allowed: true, filesLeft: 'unlimited', plan: 'pro' };
-    }
-    
-    // Free user limits
-    const filesLeft = Math.max(0, 5 - user.filesProcessed);
-    return { 
-        allowed: filesLeft > 0, 
-        filesLeft: filesLeft, 
-        plan: 'free' 
-    };
-}
-
-// Initialize Razorpay (you'll add your keys later)
+// Initialize Razorpay (replace with your actual keys)
 const razorpay = new Razorpay({
-    key_id: 'rzp_test_tyHySwr8kW0u99', // Replace with your Razorpay key
-    key_secret: 'cCyPBCY52C3uLcDTtyBmOV25' // Replace with your Razorpay secret
+    key_id: 'your_key_id', // Replace with your Razorpay key
+    key_secret: 'your_key_secret' // Replace with your Razorpay secret
 });
 
 // Serve static files and parse JSON
 app.use(express.static('public'));
 app.use(express.json({limit: '50mb'}));
 
-// Simple user session storage (replace with database later)
-let userSessions = {};
-
-// Route to auto-fix data issues
-app.post('/autofix', express.json({limit: '50mb'}), (req, res) => {
-    try {
-        const { data } = req.body;
-        
-        if (!data || !Array.isArray(data)) {
-            return res.status(400).json({ error: 'Invalid data provided' });
-        }
-        
-        // Apply auto-fixes
-        const result = autoFixData(data);
-        
-        res.json({
-            success: true,
-            fixedData: result.fixedData,
-            fixes: result.fixes,
-            totalFixes: result.totalFixes,
-            message: `Successfully fixed ${result.totalFixes} issues`
-        });
-        
-    } catch (error) {
-        console.error('Error in auto-fix:', error);
-        res.status(500).json({ error: 'Error processing auto-fix: ' + error.message });
-    }
-});
-
-// Serve static files
-app.use(express.static('public'));
-
 // Set proper headers for Tamil text
 app.use((req, res, next) => {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     next();
 });
 
-// Create uploads directory if it doesn't exist
+// Create directories if they don't exist
 if (!fs.existsSync('uploads')) {
     fs.mkdirSync('uploads');
 }
 
-// Create public directory if it doesn't exist
 if (!fs.existsSync('public')) {
     fs.mkdirSync('public');
 }
+
+// Simple user session storage (replace with database later)
+let userSessions = {};
 
 // Language Detection Functions
 function detectLanguage(text) {
@@ -186,7 +78,7 @@ function isDummyData(text) {
     return patterns.some(pattern => pattern.test(value));
 }
 
-// Phone number detection - Enhanced
+// Phone number detection
 function isPhoneNumber(text) {
     if (!text || typeof text !== 'string') return false;
     const cleaned = text.replace(/\D/g, ''); // Remove non-digits
@@ -222,7 +114,13 @@ function hasPhoneIssues(text) {
     return issues.length > 0 ? issues : null;
 }
 
-// Email detection - Enhanced
+// Email detection
+function isEmail(text) {
+    if (!text || typeof text !== 'string') return false;
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailPattern.test(text.trim());
+}
+
 function hasEmailIssues(text) {
     if (!text || typeof text !== 'string') return null;
     
@@ -252,13 +150,6 @@ function hasDateIssues(text) {
     
     const issues = [];
     
-    // Common date patterns
-    const datePatterns = [
-        /^\d{2}-\d{2}-\d{4}$/, // DD-MM-YYYY
-        /^\d{2}\/\d{2}\/\d{4}$/, // DD/MM/YYYY
-        /^\d{4}-\d{2}-\d{2}$/, // YYYY-MM-DD
-    ];
-    
     // Check if it looks like a date
     if (/\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}/.test(text)) {
         const parts = text.split(/[-\/]/);
@@ -284,181 +175,27 @@ function hasDateIssues(text) {
     return issues.length > 0 ? issues : null;
 }
 
-// Auto-fix functions
-function fixPhoneNumber(phone) {
-    if (!phone || typeof phone !== 'string') return phone;
+// ID/Code format detection
+function hasIdIssues(text) {
+    if (!text || typeof text !== 'string') return null;
     
-    // Remove all non-digits first
-    let cleaned = phone.replace(/\D/g, '');
+    const issues = [];
     
-    // Handle negative numbers or clearly invalid
-    if (phone.startsWith('-') || cleaned.length < 7) {
-        return '[INVALID_PHONE]';
+    // Check for inconsistent ID formats
+    if (text.length > 8 && /^[A-Z0-9]+$/.test(text)) {
+        // Looks like an ID, check for patterns
+        if (text.length !== 12 && text.length !== 10) {
+            issues.push('ID length inconsistent with standard formats');
+        }
     }
     
-    // Handle Indian mobile numbers (10 digits)
-    if (cleaned.length === 10 && /^[6-9]/.test(cleaned)) {
-        return `+91-${cleaned.substring(0,5)}-${cleaned.substring(5)}`;
-    }
-    
-    // Handle 11 digits (country code + 10 digits)
-    if (cleaned.length === 11 && cleaned.startsWith('91')) {
-        const mobile = cleaned.substring(2);
-        return `+91-${mobile.substring(0,5)}-${mobile.substring(5)}`;
-    }
-    
-    // Handle international numbers (keep as is but format)
-    if (cleaned.length >= 10) {
-        return `+${cleaned}`;
-    }
-    
-    return '[INVALID_PHONE]';
-}
-
-function fixEmail(email) {
-    if (!email || typeof email !== 'string') return email;
-    
-    let fixed = email.trim().toLowerCase();
-    
-    // Fix common issues
-    if (fixed.endsWith('o') && fixed.includes('@') && !fixed.endsWith('.co')) {
-        fixed = fixed.slice(0, -1); // Remove trailing 'o'
-    }
-    
-    // Remove spaces
-    fixed = fixed.replace(/\s/g, '');
-    
-    // Basic validation
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fixed)) {
-        return '[INVALID_EMAIL]';
-    }
-    
-    return fixed;
-}
-
-function fixDate(date) {
-    if (!date || typeof date !== 'string') return date;
-    
-    // Try to parse various date formats and convert to DD-MM-YYYY
-    const dateStr = date.trim();
-    
-    // Pattern: DD-MM-YYYY or DD/MM/YYYY
-    if (/^\d{2}[-\/]\d{2}[-\/]\d{4}$/.test(dateStr)) {
-        return dateStr.replace(/\//g, '-');
-    }
-    
-    // Pattern: DD-MM-YY (convert to 4-digit year)
-    if (/^\d{2}[-\/]\d{2}[-\/]\d{2}$/.test(dateStr)) {
-        const parts = dateStr.split(/[-\/]/);
-        const year = parseInt(parts[2]);
-        const fullYear = year > 50 ? 1900 + year : 2000 + year;
-        return `${parts[0]}-${parts[1]}-${fullYear}`;
-    }
-    
-    // Pattern: YYYY-MM-DD (convert to DD-MM-YYYY)
-    if (/^\d{4}[-\/]\d{2}[-\/]\d{2}$/.test(dateStr)) {
-        const parts = dateStr.split(/[-\/]/);
-        return `${parts[2]}-${parts[1]}-${parts[0]}`;
-    }
-    
-    return dateStr; // Return as-is if can't fix
-}
-
-function fixCustomerId(id) {
-    if (!id || typeof id !== 'string') return id;
-    
-    // Standardize customer ID format
-    let fixed = id.trim().toUpperCase();
-    
-    // Ensure consistent length (pad or truncate if needed)
-    if (fixed.length < 12 && /^[A-Z0-9]+$/.test(fixed)) {
-        // Pad with zeros to make 12 characters
-        fixed = fixed.padEnd(12, '0');
-    }
-    
-    return fixed;
-}
-
-function fixName(name) {
-    if (!name || typeof name !== 'string') return name;
-    
-    // Proper case for names
-    return name.trim()
-        .split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(' ');
-}
-
-// Auto-fix data function
-function autoFixData(data) {
-    const fixedData = JSON.parse(JSON.stringify(data)); // Deep copy
-    const fixes = [];
-    
-    fixedData.forEach((row, rowIndex) => {
-        Object.keys(row).forEach(column => {
-            const originalValue = row[column];
-            if (!originalValue) return;
-            
-            const columnLower = column.toLowerCase();
-            let fixedValue = originalValue;
-            let fixType = null;
-            
-            // Fix based on column type
-            if (columnLower.includes('phone') || columnLower.includes('mobile') || columnLower.includes('contact')) {
-                fixedValue = fixPhoneNumber(String(originalValue));
-                if (fixedValue !== originalValue) fixType = 'phone_format';
-            }
-            else if (columnLower.includes('email') || columnLower.includes('mail')) {
-                fixedValue = fixEmail(String(originalValue));
-                if (fixedValue !== originalValue) fixType = 'email_format';
-            }
-            else if (columnLower.includes('date')) {
-                fixedValue = fixDate(String(originalValue));
-                if (fixedValue !== originalValue) fixType = 'date_format';
-            }
-            else if (columnLower.includes('customer') && columnLower.includes('id')) {
-                fixedValue = fixCustomerId(String(originalValue));
-                if (fixedValue !== originalValue) fixType = 'id_format';
-            }
-            else if (columnLower.includes('name')) {
-                fixedValue = fixName(String(originalValue));
-                if (fixedValue !== originalValue) fixType = 'name_format';
-            }
-            
-            // Record the fix if something changed
-            if (fixType && fixedValue !== originalValue) {
-                fixes.push({
-                    row: rowIndex + 1,
-                    column: column,
-                    original: originalValue,
-                    fixed: fixedValue,
-                    type: fixType
-                });
-                
-                row[column] = fixedValue;
-            }
-        });
-    });
-    
-    return {
-        fixedData: fixedData,
-        fixes: fixes,
-        totalFixes: fixes.length
-    };
-}
-
-// Email detection
-function isEmail(text) {
-    if (!text || typeof text !== 'string') return false;
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailPattern.test(text.trim());
+    return issues.length > 0 ? issues : null;
 }
 
 // Analyze data for issues - Enhanced
 function analyzeData(data) {
     const issues = [];
     const languageStats = { tamil: 0, english: 0, mixed: 0, numbers: 0 };
-    const columnIssues = {};
     
     data.forEach((row, rowIndex) => {
         Object.keys(row).forEach(column => {
@@ -596,10 +333,93 @@ function analyzeData(data) {
     };
 }
 
+// Check user limits
+function checkUserLimits(userId) {
+    if (!userId) {
+        return { allowed: true, filesLeft: 5, plan: 'free' }; // Free user
+    }
+    
+    const user = userSessions[userId];
+    if (!user) {
+        return { allowed: true, filesLeft: 5, plan: 'free' }; // Free user
+    }
+    
+    if (user.plan === 'pro') {
+        return { allowed: true, filesLeft: 'unlimited', plan: 'pro' };
+    }
+    
+    // Free user limits
+    const filesLeft = Math.max(0, 5 - user.filesProcessed);
+    return { 
+        allowed: filesLeft > 0, 
+        filesLeft: filesLeft, 
+        plan: 'free' 
+    };
+}
+
+// Create payment order
+app.post('/create-order', async (req, res) => {
+    try {
+        const options = {
+            amount: 99900, // ₹999 in paise
+            currency: 'INR',
+            receipt: 'receipt_' + Date.now(),
+            notes: {
+                plan: 'DataCleaner Pro Monthly'
+            }
+        };
+
+        const order = await razorpay.orders.create(options);
+        res.json({
+            success: true,
+            order_id: order.id,
+            amount: order.amount,
+            currency: order.currency
+        });
+    } catch (error) {
+        console.error('Error creating order:', error);
+        res.status(500).json({ error: 'Failed to create payment order' });
+    }
+});
+
+// Verify payment
+app.post('/verify-payment', async (req, res) => {
+    try {
+        const { razorpay_payment_id, razorpay_order_id, razorpay_signature, user_email } = req.body;
+        
+        // In production, verify the signature properly
+        // For now, we'll assume payment is successful
+        
+        // Create user session
+        const userId = 'user_' + Date.now();
+        userSessions[userId] = {
+            email: user_email,
+            plan: 'pro',
+            filesProcessed: 0,
+            subscriptionDate: new Date(),
+            paymentId: razorpay_payment_id
+        };
+        
+        res.json({
+            success: true,
+            userId: userId,
+            message: 'Payment successful! Welcome to DataCleaner Pro!'
+        });
+    } catch (error) {
+        console.error('Error verifying payment:', error);
+        res.status(500).json({ error: 'Payment verification failed' });
+    }
+});
+
 // Route to handle CSV and Excel upload with user limits
 app.post('/upload', upload.single('csvFile'), (req, res) => {
+    console.log('Upload route hit!'); // Debug log
+    console.log('File received:', req.file ? 'YES' : 'NO'); // Debug log
+    
     const userId = req.headers['user-id'];
     const userLimits = checkUserLimits(userId);
+    
+    console.log('User limits:', userLimits); // Debug log
     
     if (!userLimits.allowed) {
         return res.status(403).json({ 
@@ -609,20 +429,26 @@ app.post('/upload', upload.single('csvFile'), (req, res) => {
     }
 
     if (!req.file) {
+        console.log('No file in request'); // Debug log
         return res.status(400).json({ error: 'No file uploaded' });
     }
 
     const results = [];
     const filePath = req.file.path;
     const fileExtension = path.extname(req.file.originalname).toLowerCase();
+    
+    console.log('Processing file:', req.file.originalname, 'Extension:', fileExtension); // Debug log
 
     try {
         if (fileExtension === '.xlsx' || fileExtension === '.xls') {
+            console.log('Processing Excel file...'); // Debug log
             // Handle Excel files
             const workbook = XLSX.readFile(filePath);
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
             const jsonData = XLSX.utils.sheet_to_json(worksheet);
+            
+            console.log('Excel data parsed, rows:', jsonData.length); // Debug log
             
             // Analyze the data for issues
             const analysis = analyzeData(jsonData);
@@ -634,6 +460,8 @@ app.post('/upload', upload.single('csvFile'), (req, res) => {
             
             // Clean up uploaded file
             fs.unlinkSync(filePath);
+            
+            console.log('Sending response for Excel file'); // Debug log
             
             // Send parsed data back with analysis and user info
             res.json({
@@ -647,13 +475,19 @@ app.post('/upload', upload.single('csvFile'), (req, res) => {
             });
             
         } else if (fileExtension === '.csv') {
-            // Handle CSV files
+            console.log('Processing CSV file...'); // Debug log
+            // Handle CSV files with better error handling
             fs.createReadStream(filePath)
-                .pipe(csv())
+                .pipe(csv({
+                    skipEmptyLines: true,
+                    headers: true
+                }))
                 .on('data', (data) => {
                     results.push(data);
                 })
                 .on('end', () => {
+                    console.log('CSV data parsed, rows:', results.length); // Debug log
+                    
                     // Analyze the data for issues
                     const analysis = analyzeData(results);
                     
@@ -664,6 +498,8 @@ app.post('/upload', upload.single('csvFile'), (req, res) => {
                     
                     // Clean up uploaded file
                     fs.unlinkSync(filePath);
+                    
+                    console.log('Sending response for CSV file'); // Debug log
                     
                     // Send parsed data back with analysis and user info
                     res.json({
@@ -678,7 +514,11 @@ app.post('/upload', upload.single('csvFile'), (req, res) => {
                 })
                 .on('error', (error) => {
                     console.error('Error parsing CSV:', error);
-                    res.status(500).json({ error: 'Error parsing CSV file' });
+                    // Clean up file on error
+                    if (fs.existsSync(filePath)) {
+                        fs.unlinkSync(filePath);
+                    }
+                    res.status(500).json({ error: 'Error parsing CSV file: ' + error.message });
                 });
         } else {
             // Unsupported file type
@@ -698,5 +538,5 @@ app.post('/upload', upload.single('csvFile'), (req, res) => {
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Data Cleaner app running on http://localhost:${PORT}`);
-    console.log('Upload your CSV files and start cleaning your data!');
+    console.log('Upload your CSV and Excel files and start cleaning your data!');
 });
