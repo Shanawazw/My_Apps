@@ -562,8 +562,9 @@ app.post('/upload', upload.single('csvFile'), (req, res) => {
 });
 
 // Start the server
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Data Cleaner app running on http://localhost:${PORT}`);
+    console.log(`Data Cleaner app running on port ${PORT}`);
     console.log('Upload your CSV and Excel files and start cleaning your data!');
 });
+
