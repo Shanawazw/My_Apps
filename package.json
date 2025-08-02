@@ -14,7 +14,7 @@
     "csv-parser": "^3.0.0",
     "xlsx": "^0.18.0",
     "razorpay": "^2.8.0",
-    "cors": "^2.8.5"  ← ADD THIS LINE
+    "cors": "^2.8.5" 
 },
   "engines": {
     "node": ">=16.0.0"
@@ -23,4 +23,5 @@
   "author": "DataCleaner Pro",
   "license": "MIT"
 }
+
 
