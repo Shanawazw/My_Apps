@@ -9,6 +9,20 @@ const Razorpay = require('razorpay');
 const app = express();
 const upload = multer({ dest: 'uploads/' });
 
+// ADD CORS SUPPORT
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, user-id');
+    
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+    } else {
+        next();
+    }
+});
+
+
 // Initialize Razorpay with your actual keys
 const razorpay = new Razorpay({
     key_id: 'rzp_test_tyHySwr8kW0u99',
@@ -561,14 +575,10 @@ app.post('/upload', upload.single('csvFile'), (req, res) => {
     }
 });
 
+
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Data Cleaner app running on port ${PORT}`);
     console.log('Upload your CSV and Excel files and start cleaning your data!');
 });
-
-
-
-
-
