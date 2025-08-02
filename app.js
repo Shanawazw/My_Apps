@@ -8,7 +8,6 @@ const Razorpay = require('razorpay');
 
 const app = express();
 const cors = require('cors');
-app.use(cors());
 const upload = multer({ dest: 'uploads/' });
 
 // ADD CORS SUPPORT
@@ -584,3 +583,4 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`Data Cleaner app running on port ${PORT}`);
     console.log('Upload your CSV and Excel files and start cleaning your data!');
 });
+
