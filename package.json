@@ -1,0 +1,25 @@
+{
+  "name": "datacleaner-pro",
+  "version": "1.0.0",
+  "description": "Smart data quality tool for Indian businesses",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "build": "npm install",
+    "dev": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.0",
+    "multer": "^1.4.4",
+    "csv-parser": "^3.0.0",
+    "xlsx": "^0.18.0",
+    "razorpay": "^2.8.0",
+    "cors": "^2.8.5"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": ["data", "cleaning", "csv", "excel", "tamil", "analysis"],
+  "author": "DataCleaner Pro",
+  "license": "MIT"
+}
