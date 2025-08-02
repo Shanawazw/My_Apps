@@ -7,6 +7,8 @@ const path = require('path');
 const Razorpay = require('razorpay');
 
 const app = express();
+const cors = require('cors');
+app.use(cors());
 const upload = multer({ dest: 'uploads/' });
 
 // ADD CORS SUPPORT
