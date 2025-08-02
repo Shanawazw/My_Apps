@@ -5,9 +5,10 @@ const XLSX = require('xlsx');
 const fs = require('fs');
 const path = require('path');
 const Razorpay = require('razorpay');
+const cors = require('cors');  // ← ADD THIS LINE
 
 const app = express();
-const cors = require('cors');
+app.use(cors());  // ← ADD THIS LINE
 const upload = multer({ dest: 'uploads/' });
 
 // ADD CORS SUPPORT
@@ -583,4 +584,5 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`Data Cleaner app running on port ${PORT}`);
     console.log('Upload your CSV and Excel files and start cleaning your data!');
 });
+
 
