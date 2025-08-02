@@ -265,7 +265,7 @@
                 const formData = new FormData();
                 formData.append('csvFile', file);
 
-                const response = await fetch('/upload', {
+                const response = await fetch('https://myapps-production.up.railway.app/upload', {
                     method: 'POST',
                     body: formData,
                     headers: {
