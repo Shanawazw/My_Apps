@@ -265,7 +265,7 @@
                 const formData = new FormData();
                 formData.append('csvFile', file);
 
-                const response = await fetch('https://myapps-production.up.railway.app/upload', {
+                const response = await fetch('https://flat-squids-invite.loca.lt/upload', {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -299,7 +299,7 @@
 
         async function initiatePayment() {
             try {
-                const response = await fetch('https://myapps-production.up.railway.app/create-order', {
+                const response = await fetch('https://flat-squids-invite.loca.lt/upload', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -341,7 +341,7 @@
 
         async function verifyPayment(paymentResponse) {
             try {
-                const response = await fetch('https://myapps-production.up.railway.app/verify-payment', {
+                const response = await fetch('https://flat-squids-invite.loca.lt/upload', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
