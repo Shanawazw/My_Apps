@@ -23,6 +23,11 @@ app.use((req, res, next) => {
         next();
     }
 });
+app.use((req, res, next) => {
+    res.header('ngrok-skip-browser-warning', 'true');
+    next();
+});
+
 
 
 // Initialize Razorpay with your actual keys
@@ -30,6 +35,15 @@ const razorpay = new Razorpay({
     key_id: 'rzp_test_tyHySwr8kW0u99',
     key_secret: 'cCyPBCY52C3uLcDTtyBmOV25'
 });
+
+app.get('/', (req, res) => {
+    res.json({ 
+        message: 'DataCleaner Pro API is running!',
+        status: 'online',
+        endpoints: ['/upload', '/create-order', '/verify-payment']
+    });
+});
+
 
 // Serve static files and parse JSON
 app.use(express.static('public'));
@@ -607,6 +621,7 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`Data Cleaner app running on port ${PORT}`);
     console.log('Upload your CSV and Excel files and start cleaning your data!');
 });
+
 
 
 
