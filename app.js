@@ -5,10 +5,12 @@ const XLSX = require('xlsx');
 const fs = require('fs');
 const path = require('path');
 const Razorpay = require('razorpay');
-const cors = require('cors');  // ← ADD THIS LINE
+const cors = require('cors');
 
 const app = express();
-app.use(cors());  // ← ADD THIS LINE
+app.use(cors());
+app.use(express.json({limit: '50mb'}));
+
 const upload = multer({ dest: 'uploads/' });
 
 // ADD CORS SUPPORT
@@ -23,12 +25,12 @@ app.use((req, res, next) => {
         next();
     }
 });
+
+// Add ngrok headers to prevent browser warnings
 app.use((req, res, next) => {
     res.header('ngrok-skip-browser-warning', 'true');
     next();
 });
-
-
 
 // Initialize Razorpay with your actual keys
 const razorpay = new Razorpay({
@@ -36,41 +38,43 @@ const razorpay = new Razorpay({
     key_secret: 'cCyPBCY52C3uLcDTtyBmOV25'
 });
 
-app.get('/', (req, res) => {
-    res.json({ 
-        message: 'DataCleaner Pro API is running!',
-        status: 'online',
-        endpoints: ['/upload', '/create-order', '/verify-payment']
-    });
-});
-
-
-// Serve static files and parse JSON
-app.use(express.static('public'));
-app.use(express.json({limit: '50mb'}));
-
-// Serve the main app page
+// SINGLE ROOT ROUTE - This fixes the "Cannot GET /" error
 app.get('/', (req, res) => {
     res.send(`
         <!DOCTYPE html>
         <html>
         <head>
             <title>DataCleaner Pro API</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+                .container { background: white; padding: 30px; border-radius: 10px; max-width: 600px; }
+                h1 { color: #007bff; }
+                .status { background: #d4edda; padding: 15px; border-radius: 5px; margin: 20px 0; }
+                ul { background: #f8f9fa; padding: 20px; border-radius: 5px; }
+            </style>
         </head>
         <body>
-            <h1>🧹 DataCleaner Pro Backend</h1>
-            <p>API is running successfully!</p>
-            <p>Use this backend with your frontend app.</p>
-            <h3>Available endpoints:</h3>
-            <ul>
-                <li>POST /upload - Upload and analyze files</li>
-                <li>POST /create-order - Create payment order</li>
-                <li>POST /verify-payment - Verify payment</li>
-            </ul>
+            <div class="container">
+                <h1>🧹 DataCleaner Pro Backend</h1>
+                <div class="status">
+                    <strong>✅ API is running successfully!</strong>
+                </div>
+                <p>This backend powers your DataCleaner Pro application.</p>
+                <h3>Available endpoints:</h3>
+                <ul>
+                    <li><strong>POST /upload</strong> - Upload and analyze CSV/Excel files</li>
+                    <li><strong>POST /create-order</strong> - Create payment order</li>
+                    <li><strong>POST /verify-payment</strong> - Verify payment</li>
+                </ul>
+                <p><em>Use your frontend app to interact with these endpoints.</em></p>
+            </div>
         </body>
         </html>
     `);
 });
+
+// Serve static files
+app.use(express.static('public'));
 
 // Set proper headers for Tamil text
 app.use((req, res, next) => {
@@ -572,8 +576,8 @@ app.post('/upload', upload.single('csvFile'), (req, res) => {
                     const analysis = analyzeData(results);
                     
                     // Update user file count
-                    if (userId && userSessions[userId]) {
-                        userSessions[userId].filesProcessed++;
+                    if (responseUserId && userSessions[responseUserId]) {
+                        userSessions[responseUserId].filesProcessed++;
                     }
                     
                     // Clean up uploaded file
@@ -589,7 +593,8 @@ app.post('/upload', upload.single('csvFile'), (req, res) => {
                         columns: results.length > 0 ? Object.keys(results[0]) : [],
                         fileType: 'CSV',
                         analysis: analysis,
-                        userInfo: userLimits
+                        userInfo: userLimits,
+                        userId: responseUserId
                     });
                 })
                 .on('error', (error) => {
@@ -614,14 +619,10 @@ app.post('/upload', upload.single('csvFile'), (req, res) => {
     }
 });
 
-
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Data Cleaner app running on port ${PORT}`);
     console.log('Upload your CSV and Excel files and start cleaning your data!');
+    console.log(`API Status: http://localhost:${PORT}`);
 });
-
-
-
-
