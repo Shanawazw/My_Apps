@@ -35,6 +35,29 @@ const razorpay = new Razorpay({
 app.use(express.static('public'));
 app.use(express.json({limit: '50mb'}));
 
+// Serve the main app page
+app.get('/', (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>DataCleaner Pro API</title>
+        </head>
+        <body>
+            <h1>🧹 DataCleaner Pro Backend</h1>
+            <p>API is running successfully!</p>
+            <p>Use this backend with your frontend app.</p>
+            <h3>Available endpoints:</h3>
+            <ul>
+                <li>POST /upload - Upload and analyze files</li>
+                <li>POST /create-order - Create payment order</li>
+                <li>POST /verify-payment - Verify payment</li>
+            </ul>
+        </body>
+        </html>
+    `);
+});
+
 // Set proper headers for Tamil text
 app.use((req, res, next) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -584,5 +607,6 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`Data Cleaner app running on port ${PORT}`);
     console.log('Upload your CSV and Excel files and start cleaning your data!');
 });
+
 
 
