@@ -265,7 +265,7 @@
                 const formData = new FormData();
                 formData.append('csvFile', file);
 
-                const response = await fetch('https://famous-cups-knock.loca.lt', {
+                const response = await fetch('https://c0d927592a97.ngrok-free.app/upload', {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -299,7 +299,7 @@
 
         async function initiatePayment() {
             try {
-                const response = await fetch('https://famous-cups-knock.loca.lt', {
+                const response = await fetch('https://c0d927592a97.ngrok-free.app/upload', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -341,7 +341,7 @@
 
         async function verifyPayment(paymentResponse) {
             try {
-                const response = await fetch('https://famous-cups-knock.loca.lt', {
+                const response = await fetch('https://c0d927592a97.ngrok-free.app/upload', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -550,3 +550,4 @@
     </script>
 </body>
 </html>
+
